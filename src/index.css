@@ -4,35 +4,39 @@
 
 @layer base {
   :root {
-    --background: 0 0% 97%;
-    --foreground: 0 0% 8%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 13%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
+    --card-foreground: 0 0% 13%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
+    --popover-foreground: 0 0% 13%;
 
-    --primary: 0 0% 8%;
-    --primary-foreground: 0 0% 97%;
+    --primary: 0 0% 13%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 93%;
-    --secondary-foreground: 0 0% 8%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 13%;
 
-    --muted: 0 0% 93%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 152 60% 40%;
+    --accent: 214 100% 40%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 0 0% 8%;
+    --border: 0 0% 84%;
+    --input: 0 0% 84%;
+    --ring: 214 100% 40%;
 
-    --radius: 0.25rem;
+    --radius: 0.125rem;
+
+    --wiki-link: 214 100% 38%;
+    --wiki-sidebar: 0 0% 98%;
+    --wiki-box: 0 0% 97%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -52,26 +56,57 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: "IBM Plex Sans", sans-serif;
+    font-family: -apple-system, "Helvetica Neue", "Arial", sans-serif;
+    font-size: 14px;
   }
 }
 
 @layer utilities {
-  .font-mono-custom {
-    font-family: "IBM Plex Mono", monospace;
+  .font-serif-wiki {
+    font-family: "PT Serif", "Georgia", "Times New Roman", serif;
   }
 }
 
-/* Animations */
-@keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Wiki link styles */
+.wiki-link {
+  color: hsl(var(--wiki-link));
+  text-decoration: none;
+  cursor: pointer;
+}
+.wiki-link:hover {
+  text-decoration: underline;
+}
+.wiki-link-red {
+  color: #ba0000;
+}
+
+/* Article body typography */
+.wiki-body {
+  line-height: 1.6;
+}
+.wiki-body p {
+  margin-bottom: 0.75rem;
+}
+.wiki-body h2 {
+  font-family: "PT Serif", "Georgia", serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  border-bottom: 1px solid hsl(var(--border));
+  padding-bottom: 0.2rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+.wiki-body h3 {
+  font-family: "PT Serif", "Georgia", serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.wiki-body ul {
+  list-style: disc;
+  padding-left: 1.6rem;
+  margin-bottom: 0.75rem;
 }
 
 @keyframes fade-in {
@@ -82,79 +117,6 @@
     opacity: 1;
   }
 }
-
-@keyframes line-expand {
-  from {
-    width: 0;
-  }
-  to {
-    width: 100%;
-  }
-}
-
-.animate-fade-up {
-  animation: fade-up 0.6s ease forwards;
-}
-
 .animate-fade-in {
-  animation: fade-in 0.5s ease forwards;
-}
-
-.animate-delay-100 {
-  animation-delay: 0.1s;
-  opacity: 0;
-}
-.animate-delay-200 {
-  animation-delay: 0.2s;
-  opacity: 0;
-}
-.animate-delay-300 {
-  animation-delay: 0.3s;
-  opacity: 0;
-}
-.animate-delay-400 {
-  animation-delay: 0.4s;
-  opacity: 0;
-}
-.animate-delay-500 {
-  animation-delay: 0.5s;
-  opacity: 0;
-}
-.animate-delay-600 {
-  animation-delay: 0.6s;
-  opacity: 0;
-}
-
-/* Tag pill style */
-.tag-pill {
-  @apply inline-block text-xs font-mono-custom tracking-wider uppercase px-2 py-0.5 border border-current;
-}
-
-/* Nav link hover */
-.nav-link {
-  position: relative;
-}
-.nav-link::after {
-  content: "";
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 1px;
-  background: currentColor;
-  transition: width 0.3s ease;
-}
-.nav-link:hover::after {
-  width: 100%;
-}
-
-/* Article card hover */
-.article-card {
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-}
-.article-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  animation: fade-in 0.4s ease forwards;
 }

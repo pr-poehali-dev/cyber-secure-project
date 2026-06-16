@@ -1,439 +1,388 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 
-const NAV_ITEMS = ["Главная", "Статьи", "Ресурсы", "О нас", "Контакты"];
-
-const NEWS = [
-  {
-    tag: "Уязвимость",
-    date: "09 июня 2026",
-    title: "Критическая уязвимость в OpenSSL затрагивает миллионы серверов",
-    excerpt: "Исследователи обнаружили уязвимость нулевого дня, позволяющую злоумышленникам выполнять произвольный код на удалённых системах.",
-    readTime: "4 мин",
-  },
-  {
-    tag: "Утечка данных",
-    date: "08 июня 2026",
-    title: "Крупная утечка данных: скомпрометированы 47 миллионов аккаунтов",
-    excerpt: "Популярный сервис облачного хранения подтвердил взлом своей инфраструктуры. Рекомендуется немедленно сменить пароли.",
-    readTime: "3 мин",
-  },
-  {
-    tag: "Шифрование",
-    date: "07 июня 2026",
-    title: "Квантовое шифрование: новый стандарт NIST вступает в силу",
-    excerpt: "Национальный институт стандартов опубликовал финальную версию постквантовых криптографических алгоритмов.",
-    readTime: "6 мин",
-  },
-];
+type PageKey = "main" | "articles" | "resources" | "about" | "contacts";
 
 const ARTICLES = [
-  {
-    tag: "Руководство",
-    title: "Безопасность паролей в 2026 году",
-    excerpt: "Как создавать и хранить надёжные пароли, использовать менеджеры паролей и двухфакторную аутентификацию.",
-    author: "Алексей Петров",
-    date: "05 июня 2026",
-  },
-  {
-    tag: "Анализ",
-    title: "Социальная инженерия: главная угроза корпораций",
-    excerpt: "Разбор техник фишинга, вишинга и претекстинга. Как обучить сотрудников противостоять манипуляциям.",
-    author: "Мария Соколова",
-    date: "03 июня 2026",
-  },
-  {
-    tag: "Технологии",
-    title: "Zero Trust: архитектура безопасности без периметра",
-    excerpt: "Принципы построения сетевой инфраструктуры, основанной на принципе «никому не доверяй, всегда проверяй».",
-    author: "Дмитрий Лебедев",
-    date: "01 июня 2026",
-  },
-  {
-    tag: "Практика",
-    title: "Пентест: как проверить свою защиту изнутри",
-    excerpt: "Методология и инструменты для проведения тестирования на проникновение. Легальные способы поиска уязвимостей.",
-    author: "Сергей Козлов",
-    date: "29 мая 2026",
-  },
+  { id: "passwords", title: "Безопасность паролей", category: "Защита данных" },
+  { id: "social", title: "Социальная инженерия", category: "Угрозы" },
+  { id: "zerotrust", title: "Zero Trust", category: "Архитектура" },
+  { id: "pentest", title: "Тестирование на проникновение", category: "Практика" },
+  { id: "phishing", title: "Фишинг", category: "Угрозы" },
+  { id: "encryption", title: "Шифрование данных", category: "Криптография" },
 ];
 
 const RESOURCES = [
-  { icon: "BookOpen", title: "CVE Database", desc: "Официальная база данных известных уязвимостей", tag: "База данных" },
-  { icon: "Shield", title: "OWASP Top 10", desc: "Топ угроз веб-приложениям от открытого сообщества", tag: "Стандарт" },
-  { icon: "Terminal", title: "Kali Linux", desc: "Дистрибутив для тестирования безопасности", tag: "Инструмент" },
-  { icon: "Lock", title: "Have I Been Pwned", desc: "Проверьте, была ли утечка ваших данных", tag: "Сервис" },
-  { icon: "FileText", title: "NIST Framework", desc: "Фреймворк кибербезопасности для организаций", tag: "Стандарт" },
-  { icon: "Globe", title: "Shodan", desc: "Поисковик устройств, подключённых к интернету", tag: "Инструмент" },
+  { title: "CVE Database", desc: "база данных известных уязвимостей" },
+  { title: "OWASP Top 10", desc: "список главных угроз веб-приложениям" },
+  { title: "Kali Linux", desc: "дистрибутив для тестирования безопасности" },
+  { title: "Have I Been Pwned", desc: "сервис проверки утечек данных" },
+  { title: "NIST Framework", desc: "фреймворк кибербезопасности для организаций" },
+  { title: "Shodan", desc: "поисковая система устройств в интернете" },
 ];
 
-const TEAM = [
-  { name: "Андрей Волков", role: "Главный редактор", bio: "15 лет в информационной безопасности. Специалист по защите критической инфраструктуры." },
-  { name: "Елена Морозова", role: "Аналитик угроз", bio: "Исследователь вредоносного ПО, автор более 200 технических отчётов." },
-  { name: "Игорь Зайцев", role: "Технический эксперт", bio: "Сертифицированный этичный хакер (CEH, OSCP). Проводит корпоративные тренинги." },
+const TOC = [
+  { id: "1", label: "Определение" },
+  { id: "2", label: "История" },
+  { id: "3", label: "Основные угрозы" },
+  { id: "4", label: "Методы защиты" },
+  { id: "5", label: "См. также" },
 ];
 
 export default function Index() {
-  const [activeSection, setActiveSection] = useState("Главная");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [page, setPage] = useState<PageKey>("main");
+  const [search, setSearch] = useState("");
 
-  const scrollTo = (section: string) => {
-    setActiveSection(section);
-    setMobileMenuOpen(false);
-    const id: Record<string, string> = {
-      "Главная": "hero",
-      "Статьи": "articles",
-      "Ресурсы": "resources",
-      "О нас": "about",
-      "Контакты": "contacts",
-    };
-    if (id[section]) {
-      document.getElementById(id[section])?.scrollIntoView({ behavior: "smooth" });
-    }
+  const NAV = [
+    { key: "main" as PageKey, label: "Заглавная страница", icon: "Home" },
+    { key: "articles" as PageKey, label: "Статьи", icon: "FileText" },
+    { key: "resources" as PageKey, label: "Ресурсы", icon: "Library" },
+    { key: "about" as PageKey, label: "О проекте", icon: "Info" },
+    { key: "contacts" as PageKey, label: "Контакты", icon: "Mail" },
+  ];
+
+  const titles: Record<PageKey, string> = {
+    main: "Кибербезопасность",
+    articles: "Категория: Статьи",
+    resources: "Полезные ресурсы",
+    about: "КиберВики: О проекте",
+    contacts: "КиберВики: Контакты",
   };
 
   return (
-    <div className="min-h-screen bg-[#f6f6f4] text-[#111]" style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}>
-
-      {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#f6f6f4]/95 backdrop-blur-sm border-b border-[#e0e0e0]">
-        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-14">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-[#111] flex items-center justify-center">
-              <Icon name="Shield" size={14} className="text-[#f6f6f4]" />
+    <div className="min-h-screen bg-white text-[#202122]">
+      {/* TOP BAR */}
+      <header className="border-b border-[#a2a9b1] bg-white">
+        <div className="flex items-center px-3 h-[55px] gap-4">
+          <button onClick={() => setPage("main")} className="flex items-center gap-2 shrink-0">
+            <div className="w-10 h-10 rounded-full border border-[#a2a9b1] flex items-center justify-center bg-[#f8f9fa]">
+              <Icon name="ShieldCheck" size={22} className="text-[#202122]" />
             </div>
-            <span className="font-semibold tracking-tight text-sm">CyberWatch</span>
-          </div>
-
-          <div className="hidden md:flex items-center gap-8">
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item}
-                onClick={() => scrollTo(item)}
-                className={`nav-link text-sm transition-colors ${activeSection === item ? "text-[#111] font-medium" : "text-[#888] hover:text-[#111]"}`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-
-          <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            <Icon name={mobileMenuOpen ? "X" : "Menu"} size={20} />
+            <div className="leading-tight hidden sm:block">
+              <div className="font-serif-wiki text-lg">КиберВики</div>
+              <div className="text-[11px] text-[#54595d]">свободная энциклопедия</div>
+            </div>
           </button>
-        </div>
 
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-[#f6f6f4] border-t border-[#e0e0e0] px-6 py-4 flex flex-col gap-3">
-            {NAV_ITEMS.map((item) => (
-              <button key={item} onClick={() => scrollTo(item)} className="text-left text-sm py-1 text-[#555] hover:text-[#111]">
-                {item}
-              </button>
-            ))}
-          </div>
-        )}
-      </nav>
-
-      {/* HERO */}
-      <section id="hero" className="pt-14 min-h-screen flex flex-col justify-center border-b border-[#e0e0e0]">
-        <div className="max-w-6xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-16 items-center">
-          <div>
-            <div className="animate-fade-up animate-delay-100">
-              <span className="tag-pill text-[#888] border-[#ccc] mb-6 block w-fit">
-                Информационный портал
-              </span>
+          <div className="flex-1 max-w-2xl flex">
+            <div className="flex-1 flex items-center border border-[#a2a9b1] rounded-l-sm px-2 bg-white">
+              <Icon name="Search" size={15} className="text-[#72777d]" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Поиск в КиберВики"
+                className="w-full px-2 py-1.5 text-sm outline-none bg-transparent text-[#202122]"
+              />
             </div>
-            <h1 className="animate-fade-up animate-delay-200 text-5xl md:text-6xl font-light leading-[1.1] tracking-tight mb-6">
-              Кибербез-<br />
-              <span className="font-semibold">опасность</span><br />
-              сегодня
-            </h1>
-            <p className="animate-fade-up animate-delay-300 text-[#666] text-lg leading-relaxed mb-10 max-w-sm">
-              Актуальные новости, экспертные статьи и проверенные ресурсы для специалистов и тех, кто хочет защитить себя в цифровом мире.
-            </p>
-            <div className="animate-fade-up animate-delay-400 flex gap-4">
-              <button
-                onClick={() => scrollTo("Статьи")}
-                className="bg-[#111] text-[#f6f6f4] px-6 py-3 text-sm font-medium hover:bg-[#333] transition-colors"
-              >
-                Читать статьи
-              </button>
-              <button
-                onClick={() => scrollTo("Ресурсы")}
-                className="border border-[#ccc] text-[#111] px-6 py-3 text-sm font-medium hover:border-[#111] transition-colors"
-              >
-                Ресурсы
-              </button>
-            </div>
-          </div>
-
-          <div className="animate-fade-up animate-delay-500 grid grid-cols-2 gap-px bg-[#e0e0e0]">
-            {[
-              { num: "2 400+", label: "Статей опубликовано" },
-              { num: "98K", label: "Читателей ежемесячно" },
-              { num: "150+", label: "Экспертов в сети" },
-              { num: "24/7", label: "Мониторинг угроз" },
-            ].map((s) => (
-              <div key={s.label} className="bg-[#f6f6f4] p-8">
-                <div className="text-3xl font-semibold mb-1 text-[#111]">{s.num}</div>
-                <div className="text-sm text-[#888]">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="border-t border-[#e0e0e0] bg-[#111] text-[#f6f6f4] px-6 py-3 flex items-center gap-4 overflow-hidden">
-          <span className="tag-pill border-[#f6f6f4]/30 text-[#f6f6f4]/60 text-xs shrink-0">Сейчас</span>
-          <div className="flex gap-12 text-sm text-[#aaa] overflow-x-auto">
-            {NEWS.map((n) => (
-              <span key={n.title} className="shrink-0 cursor-pointer hover:text-white transition-colors">{n.title}</span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* NEWS */}
-      <section className="py-20 border-b border-[#e0e0e0]">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <span className="font-mono-custom text-xs text-[#888] tracking-widest uppercase block mb-2">01 / Новости</span>
-              <h2 className="text-3xl font-light text-[#111]">Последние события</h2>
-            </div>
-            <button className="hidden md:flex items-center gap-2 text-sm text-[#888] hover:text-[#111] transition-colors">
-              Все новости <Icon name="ArrowRight" size={14} />
+            <button className="px-4 bg-[#f8f9fa] border border-l-0 border-[#a2a9b1] rounded-r-sm text-sm text-[#202122] hover:bg-[#eaecf0]">
+              Найти
             </button>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-px bg-[#e0e0e0]">
-            {NEWS.map((item, i) => (
-              <article key={i} className="article-card bg-[#f6f6f4] p-8 cursor-pointer group">
-                <div className="flex items-center justify-between mb-6">
-                  <span className="tag-pill border-[#ccc] text-[#888]">{item.tag}</span>
-                  <span className="font-mono-custom text-xs text-[#bbb]">{item.date}</span>
-                </div>
-                <h3 className="text-base font-medium leading-snug mb-3 text-[#111] group-hover:text-[#333] transition-colors">{item.title}</h3>
-                <p className="text-sm text-[#888] leading-relaxed mb-6">{item.excerpt}</p>
-                <div className="flex items-center gap-1 text-xs text-[#aaa]">
-                  <Icon name="Clock" size={12} />
-                  <span>{item.readTime} чтения</span>
-                </div>
-              </article>
-            ))}
+          <div className="hidden md:flex items-center gap-3 text-sm shrink-0">
+            <span className="wiki-link">Создать учётную запись</span>
+            <span className="wiki-link">Войти</span>
           </div>
         </div>
-      </section>
+      </header>
 
-      {/* ARTICLES */}
-      <section id="articles" className="py-20 border-b border-[#e0e0e0]">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <span className="font-mono-custom text-xs text-[#888] tracking-widest uppercase block mb-2">02 / Статьи</span>
-              <h2 className="text-3xl font-light text-[#111]">Экспертные материалы</h2>
+      <div className="flex max-w-[1400px] mx-auto">
+        {/* SIDEBAR */}
+        <aside className="hidden lg:block w-[176px] shrink-0 px-3 py-4 text-[13px]">
+          <div className="mb-5">
+            <div className="text-[#54595d] text-[11px] border-b border-[#c8ccd1] pb-1 mb-2 font-bold uppercase tracking-wide">
+              Навигация
             </div>
-            <button className="hidden md:flex items-center gap-2 text-sm text-[#888] hover:text-[#111] transition-colors">
-              Все статьи <Icon name="ArrowRight" size={14} />
-            </button>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-px bg-[#e0e0e0]">
-            {ARTICLES.map((item, i) => (
-              <article key={i} className="article-card bg-[#f6f6f4] p-8 cursor-pointer group">
-                <div className="mb-4">
-                  <span className="tag-pill border-[#1a9a5a] text-[#1a9a5a]">{item.tag}</span>
-                </div>
-                <h3 className="text-lg font-medium leading-snug mb-3 text-[#111] group-hover:text-[#333] transition-colors">{item.title}</h3>
-                <p className="text-sm text-[#888] leading-relaxed mb-6">{item.excerpt}</p>
-                <div className="flex items-center justify-between text-xs text-[#bbb]">
-                  <span className="font-medium text-[#666]">{item.author}</span>
-                  <span className="font-mono-custom">{item.date}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* RESOURCES */}
-      <section id="resources" className="py-20 bg-[#111] border-b border-[#333]">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="mb-12">
-            <span className="font-mono-custom text-xs text-[#555] tracking-widest uppercase block mb-2">03 / Ресурсы</span>
-            <h2 className="text-3xl font-light text-[#f6f6f4]">Полезные инструменты</h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-px bg-[#333]">
-            {RESOURCES.map((r, i) => (
-              <div key={i} className="bg-[#111] p-8 cursor-pointer group hover:bg-[#1a1a1a] transition-colors">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="w-10 h-10 border border-[#333] flex items-center justify-center group-hover:border-[#555] transition-colors">
-                    <Icon name={r.icon} size={18} className="text-[#888]" />
-                  </div>
-                  <span className="tag-pill border-[#333] text-[#555] group-hover:border-[#555] transition-colors">{r.tag}</span>
-                </div>
-                <h3 className="font-medium mb-2 text-[#f6f6f4] group-hover:text-white transition-colors">{r.title}</h3>
-                <p className="text-sm text-[#666] leading-relaxed">{r.desc}</p>
-                <div className="mt-6 flex items-center gap-1 text-xs text-[#444] group-hover:text-[#888] transition-colors">
-                  <span>Открыть</span>
-                  <Icon name="ArrowUpRight" size={12} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ABOUT */}
-      <section id="about" className="py-20 border-b border-[#e0e0e0]">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="mb-12">
-            <span className="font-mono-custom text-xs text-[#888] tracking-widest uppercase block mb-2">04 / О нас</span>
-            <h2 className="text-3xl font-light text-[#111]">Команда экспертов</h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-px bg-[#e0e0e0] mb-16">
-            {TEAM.map((member, i) => (
-              <div key={i} className="bg-[#f6f6f4] p-8">
-                <div className="w-12 h-12 bg-[#111] mb-6 flex items-center justify-center">
-                  <Icon name="User" size={20} className="text-[#f6f6f4]" />
-                </div>
-                <div className="font-semibold mb-1 text-[#111]">{member.name}</div>
-                <div className="text-xs text-[#1a9a5a] font-mono-custom tracking-wider uppercase mb-4">{member.role}</div>
-                <p className="text-sm text-[#888] leading-relaxed">{member.bio}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div>
-              <h3 className="text-2xl font-light mb-4 text-[#111]">Миссия портала</h3>
-              <p className="text-[#666] leading-relaxed mb-4">
-                CyberWatch — независимое издание, посвящённое информационной безопасности. Мы публикуем проверенные материалы о киберугрозах, защите данных и цифровой гигиене.
-              </p>
-              <p className="text-[#666] leading-relaxed">
-                Наша цель — сделать знания о кибербезопасности доступными для всех: от рядовых пользователей до профессионалов отрасли.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-6">
-              {[
-                { icon: "CheckCircle", text: "Независимая редакция" },
-                { icon: "Eye", text: "Проверка фактов" },
-                { icon: "Zap", text: "Оперативные обновления" },
-                { icon: "Users", text: "Экспертное сообщество" },
-              ].map((f, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <Icon name={f.icon} size={16} className="text-[#1a9a5a] mt-0.5 shrink-0" />
-                  <span className="text-sm text-[#555]">{f.text}</span>
-                </div>
+            <ul className="space-y-1.5">
+              {NAV.map((n) => (
+                <li key={n.key}>
+                  <button
+                    onClick={() => setPage(n.key)}
+                    className={`text-left wiki-link ${page === n.key ? "font-bold" : ""}`}
+                  >
+                    {n.label}
+                  </button>
+                </li>
               ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CONTACTS */}
-      <section id="contacts" className="py-20 border-b border-[#e0e0e0]">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="mb-12">
-            <span className="font-mono-custom text-xs text-[#888] tracking-widest uppercase block mb-2">05 / Контакты</span>
-            <h2 className="text-3xl font-light text-[#111]">Связаться с нами</h2>
+            </ul>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-16">
-            <div>
-              <p className="text-[#666] leading-relaxed mb-8">
-                Хотите предложить тему для статьи, сообщить об уязвимости или стать партнёром? Напишите нам.
-              </p>
-              <div className="flex flex-col gap-4">
-                {[
-                  { icon: "Mail", label: "Редакция", value: "editor@cyberwatch.ru" },
-                  { icon: "AlertTriangle", label: "Сообщить об угрозе", value: "security@cyberwatch.ru" },
-                  { icon: "Briefcase", label: "Партнёрства", value: "partners@cyberwatch.ru" },
-                ].map((c, i) => (
-                  <div key={i} className="flex items-center gap-4 py-4 border-b border-[#e8e8e8]">
-                    <div className="w-8 h-8 border border-[#e0e0e0] flex items-center justify-center shrink-0">
-                      <Icon name={c.icon} size={14} className="text-[#888]" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-[#aaa] font-mono-custom uppercase tracking-wider">{c.label}</div>
-                      <div className="text-sm font-medium mt-0.5 text-[#111]">{c.value}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <div className="mb-5">
+            <div className="text-[#54595d] text-[11px] border-b border-[#c8ccd1] pb-1 mb-2 font-bold uppercase tracking-wide">
+              Участие
             </div>
+            <ul className="space-y-1.5">
+              <li><span className="wiki-link">Свежие правки</span></li>
+              <li><span className="wiki-link">Случайная статья</span></li>
+              <li><span className="wiki-link">Сообщить об угрозе</span></li>
+              <li><span className="wiki-link">Справка</span></li>
+            </ul>
+          </div>
 
-            <div>
-              <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="font-mono-custom text-xs text-[#888] uppercase tracking-wider block mb-2">Имя</label>
-                    <input
-                      type="text"
-                      placeholder="Ваше имя"
-                      className="w-full border border-[#e0e0e0] bg-transparent px-4 py-3 text-sm text-[#111] placeholder:text-[#bbb] focus:outline-none focus:border-[#111] transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-mono-custom text-xs text-[#888] uppercase tracking-wider block mb-2">Email</label>
-                    <input
-                      type="email"
-                      placeholder="email@example.com"
-                      className="w-full border border-[#e0e0e0] bg-transparent px-4 py-3 text-sm text-[#111] placeholder:text-[#bbb] focus:outline-none focus:border-[#111] transition-colors"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="font-mono-custom text-xs text-[#888] uppercase tracking-wider block mb-2">Тема</label>
-                  <input
-                    type="text"
-                    placeholder="Тема обращения"
-                    className="w-full border border-[#e0e0e0] bg-transparent px-4 py-3 text-sm text-[#111] placeholder:text-[#bbb] focus:outline-none focus:border-[#111] transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="font-mono-custom text-xs text-[#888] uppercase tracking-wider block mb-2">Сообщение</label>
-                  <textarea
-                    rows={5}
-                    placeholder="Ваше сообщение..."
-                    className="w-full border border-[#e0e0e0] bg-transparent px-4 py-3 text-sm text-[#111] placeholder:text-[#bbb] focus:outline-none focus:border-[#111] transition-colors resize-none"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="bg-[#111] text-[#f6f6f4] px-6 py-3 text-sm font-medium hover:bg-[#333] transition-colors w-full md:w-auto md:self-start"
-                >
-                  Отправить сообщение
-                </button>
-              </form>
+          <div>
+            <div className="text-[#54595d] text-[11px] border-b border-[#c8ccd1] pb-1 mb-2 font-bold uppercase tracking-wide">
+              Инструменты
             </div>
+            <ul className="space-y-1.5">
+              <li><span className="wiki-link">Ссылки сюда</span></li>
+              <li><span className="wiki-link">Версия для печати</span></li>
+              <li><span className="wiki-link">Постоянная ссылка</span></li>
+            </ul>
           </div>
-        </div>
-      </section>
+        </aside>
 
-      {/* FOOTER */}
-      <footer className="py-10 bg-[#111]">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 bg-[#f6f6f4] flex items-center justify-center">
-              <Icon name="Shield" size={11} className="text-[#111]" />
+        {/* MAIN */}
+        <main className="flex-1 min-w-0 border-l border-[#a7d7f9]/0 lg:border-l lg:border-[#c8ccd1] px-4 lg:px-6 py-3">
+          {/* Article tabs */}
+          <div className="flex items-end justify-between border-b border-[#a2a9b1] mb-3">
+            <div className="flex text-[13px]">
+              <span className="px-3 py-1.5 border border-b-0 border-[#a2a9b1] bg-white -mb-px text-[#202122]">Статья</span>
+              <span className="px-3 py-1.5 wiki-link">Обсуждение</span>
             </div>
-            <span className="text-[#888] text-sm font-medium">CyberWatch</span>
+            <div className="hidden sm:flex text-[13px] gap-3 pb-1.5">
+              <span className="wiki-link border-b border-[#202122] text-[#202122]">Читать</span>
+              <span className="wiki-link">Править</span>
+              <span className="wiki-link">История</span>
+            </div>
           </div>
-          <div className="flex gap-6 text-xs">
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item}
-                onClick={() => scrollTo(item)}
-                className="text-[#555] hover:text-[#f6f6f4] transition-colors"
-              >
-                {item}
-              </button>
-            ))}
+
+          {/* Title */}
+          <h1 className="font-serif-wiki text-[28px] font-normal leading-tight border-b border-[#a2a9b1] pb-1 mb-1 animate-fade-in">
+            {titles[page]}
+          </h1>
+          <div className="text-[12px] text-[#54595d] mb-4">
+            Материал из КиберВики — свободной энциклопедии
           </div>
-          <div className="text-xs font-mono-custom text-[#555]">© 2026 CyberWatch</div>
+
+          {page === "main" && <MainArticle setPage={setPage} />}
+          {page === "articles" && <ArticlesPage />}
+          {page === "resources" && <ResourcesPage />}
+          {page === "about" && <AboutPage />}
+          {page === "contacts" && <ContactsPage />}
+
+          {/* Footer cats */}
+          <div className="mt-10 pt-2 border-t border-[#a2a9b1] text-[12px] text-[#202122]">
+            <span className="text-[#54595d]">Категории: </span>
+            <span className="wiki-link">Кибербезопасность</span>
+            <span> | </span>
+            <span className="wiki-link">Информационная безопасность</span>
+            <span> | </span>
+            <span className="wiki-link">Информатика</span>
+          </div>
+        </main>
+      </div>
+
+      {/* PAGE FOOTER */}
+      <footer className="border-t border-[#c8ccd1] mt-6 py-6 px-4 text-[12px] text-[#54595d]">
+        <div className="max-w-[1400px] mx-auto">
+          <p className="mb-2">
+            Последнее изменение этой страницы: 16 июня 2026, в 14:32.
+          </p>
+          <p>
+            Текст доступен по лицензии Creative Commons «Атрибуция — На тех же условиях».
+            КиберВики® — свободная энциклопедия о кибербезопасности.
+          </p>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function MainArticle({ setPage }: { setPage: (p: PageKey) => void }) {
+  return (
+    <div className="lg:flex lg:gap-6">
+      <div className="flex-1 min-w-0 wiki-body text-[14px]">
+        {/* TOC */}
+        <div className="inline-block border border-[#a2a9b1] bg-[#f8f9fa] p-3 mb-4 text-[13px]">
+          <div className="font-bold text-center mb-2">Содержание</div>
+          <ol className="space-y-1">
+            {TOC.map((t, i) => (
+              <li key={t.id}>
+                <span className="text-[#54595d] mr-1">{i + 1}</span>
+                <span className="wiki-link">{t.label}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <p>
+          <b>Кибербезопасность</b> (англ. <i>cyber security</i>) — практика защиты компьютерных систем,
+          сетей, программ и данных от <span className="wiki-link">цифровых атак</span>. Целью таких атак
+          обычно является получение доступа к конфиденциальной информации, её изменение или уничтожение,
+          вымогательство денег у пользователей либо нарушение нормальной работы организаций.
+        </p>
+        <p>
+          Эффективная защита требует координации усилий во всей информационной системе, включая
+          безопасность <span className="wiki-link">сетей</span>, <span className="wiki-link">приложений</span>,
+          конечных устройств, а также обучение персонала.
+        </p>
+
+        <h2 id="1">Определение</h2>
+        <p>
+          Под кибербезопасностью понимают совокупность методов, технологий и процессов, направленных на
+          обеспечение <span className="wiki-link">конфиденциальности</span>, целостности и доступности
+          информации. Эти три принципа составляют так называемую «триаду CIA».
+        </p>
+
+        <h2 id="2">История</h2>
+        <p>
+          Первая известная компьютерная программа-червь <span className="wiki-link">Creeper</span>
+          появилась в начале 1970-х годов. В ответ была создана программа <span className="wiki-link">Reaper</span> —
+          первый антивирус. С развитием интернета угрозы стали массовыми, что привело к формированию
+          отдельной индустрии информационной безопасности.
+        </p>
+
+        <h2 id="3">Основные угрозы</h2>
+        <ul>
+          <li><span className="wiki-link">Вредоносное ПО</span> — вирусы, трояны, программы-вымогатели</li>
+          <li><span className="wiki-link">Фишинг</span> — кража данных через поддельные сообщения</li>
+          <li><span className="wiki-link">DDoS-атаки</span> — перегрузка серверов запросами</li>
+          <li><span className="wiki-link">Социальная инженерия</span> — манипуляция людьми</li>
+        </ul>
+
+        <h2 id="4">Методы защиты</h2>
+        <p>
+          К основным средствам защиты относят <span className="wiki-link">межсетевые экраны</span>,
+          системы обнаружения вторжений, <span className="wiki-link">шифрование</span>,
+          многофакторную аутентификацию и регулярное обновление программного обеспечения.
+        </p>
+
+        <h2 id="5">См. также</h2>
+        <ul>
+          <li><button onClick={() => setPage("articles")} className="wiki-link">Список статей по теме</button></li>
+          <li><button onClick={() => setPage("resources")} className="wiki-link">Полезные ресурсы</button></li>
+        </ul>
+      </div>
+
+      {/* INFOBOX */}
+      <aside className="lg:w-[290px] shrink-0 lg:mt-0 mt-4">
+        <div className="border border-[#a2a9b1] bg-[#f8f9fa] text-[13px]">
+          <div className="bg-[#cedff2] text-center font-bold py-1.5 font-serif-wiki text-[15px]">
+            Кибербезопасность
+          </div>
+          <div className="p-2 text-center border-b border-[#a2a9b1]">
+            <div className="w-full h-32 bg-[#202122] flex items-center justify-center">
+              <Icon name="ShieldCheck" size={56} className="text-white" />
+            </div>
+            <div className="text-[11px] text-[#54595d] mt-1">
+              Защита информации — основа цифровой эпохи
+            </div>
+          </div>
+          <table className="w-full text-[12px]">
+            <tbody>
+              {[
+                ["Область", "Информатика"],
+                ["Возникновение", "1970-е годы"],
+                ["Триада", "CIA"],
+                ["Стандарты", "ISO 27001, NIST"],
+                ["Специалисты", "150+ в сети"],
+              ].map(([k, v]) => (
+                <tr key={k} className="border-b border-[#c8ccd1] last:border-0 align-top">
+                  <th className="bg-[#eaecf0] text-left font-bold px-2 py-1.5 w-[40%]">{k}</th>
+                  <td className="px-2 py-1.5">{v}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+function ArticlesPage() {
+  return (
+    <div className="wiki-body text-[14px]">
+      <p>
+        Эта страница содержит список статей категории <b>«Кибербезопасность»</b>.
+        Всего в категории {ARTICLES.length} статей.
+      </p>
+      <h2>Страницы в категории</h2>
+      <div className="grid sm:grid-cols-2 gap-x-8 gap-y-1 mt-3">
+        {ARTICLES.map((a) => (
+          <div key={a.id} className="flex items-baseline gap-2 py-0.5 border-b border-dotted border-[#c8ccd1]">
+            <span className="wiki-link">{a.title}</span>
+            <span className="text-[11px] text-[#72777d] ml-auto">{a.category}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ResourcesPage() {
+  return (
+    <div className="wiki-body text-[14px]">
+      <p>
+        Ниже приведён список внешних <b>ресурсов и инструментов</b>, рекомендуемых для изучения
+        и практики в области информационной безопасности.
+      </p>
+      <h2>Базы данных и инструменты</h2>
+      <ul>
+        {RESOURCES.map((r) => (
+          <li key={r.title}>
+            <span className="wiki-link">{r.title}</span> — {r.desc}.
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function AboutPage() {
+  return (
+    <div className="wiki-body text-[14px]">
+      <p>
+        <b>КиберВики</b> — это свободная энциклопедия, посвящённая информационной безопасности.
+        Проект создан, чтобы сделать знания о киберугрозах и методах защиты доступными для каждого.
+      </p>
+      <h2>Миссия</h2>
+      <p>
+        Мы собираем и систематизируем проверенную информацию о кибербезопасности: от базовых понятий
+        до сложных технических концепций. Все материалы проходят редакторскую проверку.
+      </p>
+      <h2>Принципы</h2>
+      <ul>
+        <li>Свободное распространение знаний</li>
+        <li>Нейтральная точка зрения</li>
+        <li>Проверяемость информации</li>
+        <li>Открытое сообщество экспертов</li>
+      </ul>
+    </div>
+  );
+}
+
+function ContactsPage() {
+  return (
+    <div className="wiki-body text-[14px]">
+      <p>
+        Свяжитесь с редакцией КиберВики по любым вопросам, предложениям или для сообщения об уязвимости.
+      </p>
+      <h2>Адреса</h2>
+      <ul>
+        <li>Редакция — <span className="wiki-link">editor@cyberwiki.ru</span></li>
+        <li>Сообщить об угрозе — <span className="wiki-link">security@cyberwiki.ru</span></li>
+        <li>Партнёрства — <span className="wiki-link">partners@cyberwiki.ru</span></li>
+      </ul>
+      <h2>Форма обратной связи</h2>
+      <form className="max-w-md mt-3 space-y-3" onSubmit={(e) => e.preventDefault()}>
+        <input
+          placeholder="Ваше имя"
+          className="w-full border border-[#a2a9b1] px-2 py-1.5 text-sm outline-none focus:border-[#3366cc] rounded-sm"
+        />
+        <input
+          placeholder="Email"
+          className="w-full border border-[#a2a9b1] px-2 py-1.5 text-sm outline-none focus:border-[#3366cc] rounded-sm"
+        />
+        <textarea
+          rows={4}
+          placeholder="Сообщение"
+          className="w-full border border-[#a2a9b1] px-2 py-1.5 text-sm outline-none focus:border-[#3366cc] rounded-sm resize-none"
+        />
+        <button className="bg-[#3366cc] text-white px-4 py-1.5 text-sm rounded-sm hover:bg-[#2a4b8d]">
+          Отправить
+        </button>
+      </form>
     </div>
   );
 }
